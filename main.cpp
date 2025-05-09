@@ -1,6 +1,7 @@
 #include <iostream>
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
+#include "math.h"
 #define INFO_LOG_BUFFER_SIZE 512
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -36,10 +37,11 @@ const char *vertexShaderSource = "#version 330 core\n"
                                  "}\0";
 
 const char *fragShaderSource = "#version 330 core\n"
-                               "out vec4 FragColour;\n"
+                               "out vec4 fragColour;\n"
+                               "uniform vec4 vertexColour;\n"
                                "void main()\n"
                                "{\n"
-                               "    FragColour = vec4(1.0, 0.5, 0.2, 1.0);\n"
+                               "    fragColour = vertexColour;\n"
                                "}\0";
 
 int main()
@@ -197,7 +199,14 @@ void initEBO(unsigned int *EBO)
 void render(GLFWwindow* window, unsigned int shaderProgram, unsigned int VAO, unsigned int EBO) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    float timeValue = glfwGetTime();
+    float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+    int vertexColourLocation = glGetUniformLocation(shaderProgram, "vertexColour");
+
     glUseProgram(shaderProgram);
+    glUniform4f(vertexColourLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
     glBindVertexArray(VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);

@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #define INFO_LOG_BUFFER_SIZE 512
@@ -8,20 +7,26 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void initWindow(GLFWwindow **window);
 void initShaders(unsigned int *shaderProgram);
-void initVBO(unsigned int *VBO);
 void initVAO(unsigned int *VAO);
+void initVBO(unsigned int *VBO);
+void initEBO(unsigned int *VBO);
+void render(GLFWwindow *window, unsigned int shaderProgram, unsigned int VAO, unsigned int EBO);
 
+// Unique vertices for a rectangle
 float vertices[] = {
-    -0.5f,
-    -0.5f,
-    0.0f,
-    0.5f,
-    -0.5f,
-    0.0f,
-    0.0f,
-    0.5f,
-    0.0f,
+    -0.5f, 0.5f, 0.0f, // top left
+    -0.5f, -0.5f, 0.0f, // bottom left
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
 };
+
+// Order for drawing triangles that correspond to the 
+// desired rectangle given the vertices above
+unsigned int indices[] = {
+    0, 1, 2, // First triangle
+    2, 3, 1 // Second triangle
+};
+
 
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
@@ -50,25 +55,22 @@ int main()
     unsigned int VBO;
     initVBO(&VBO);
 
+    unsigned int EBO;
+    initEBO(&EBO);
+
     unsigned int shaderProgram;
     initShaders(&shaderProgram);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        glfwSwapBuffers(window);
-
+        render(window, shaderProgram, VAO, EBO);
         glfwPollEvents();
     }
+
     glfwTerminate();
+    std::cout << "Program terminated." << std::endl;
     return 0;
 }
 
@@ -174,7 +176,7 @@ void initVBO(unsigned int *VBO)
     int elementsPerVertex = 3;
     int stride = elementsPerVertex * sizeof(float);
     void *offset = (void *)0;
-    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, stride,
+    glVertexAttribPointer(location, elementsPerVertex, GL_FLOAT, GL_FALSE, stride,
                           offset);
     glEnableVertexAttribArray(location);
 }
@@ -183,4 +185,24 @@ void initVAO(unsigned int *VAO)
 {
     glGenVertexArrays(1, VAO);
     glBindVertexArray(*VAO);
+}
+
+void initEBO(unsigned int *EBO)
+{
+    glGenBuffers(1, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+}
+
+void render(GLFWwindow* window, unsigned int shaderProgram, unsigned int VAO, unsigned int EBO) {
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glUseProgram(shaderProgram);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
+    // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices)/sizeof(vertices[0]));
+
+    glfwSwapBuffers(window);
+
 }

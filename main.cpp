@@ -10,15 +10,17 @@ void initWindow(GLFWwindow **window);
 void initVAO(unsigned int *VAO);
 void initVBO(unsigned int *VBO, std::vector<float> vertices);
 void initEBO(unsigned int *EBO, std::vector<unsigned int> indices);
-void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EBO, std::vector<unsigned int> indices);
+void render(GLFWwindow *window, Shader shader, unsigned int rectangleVAO, unsigned int triangleVAO, unsigned int rectabngleEBO, std::vector<unsigned int> indices);
+void drawTriangle(unsigned int triangleVAO);
+void drawRectangle(unsigned int rectangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices);
 
 int main()
 {
   std::vector vertices = {
-    -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top left
-    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-    0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   // top right
-    0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom right
+    -0.4f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top left
+    -0.4f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+     0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   // top right
+     0.0f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom right
   };
 
   std::vector<unsigned int> indices = {
@@ -26,19 +28,26 @@ int main()
     2, 3, 1  // Second triangle
   };
 
+  std::vector triangleVertices = {
+    0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // left
+    0.2f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // top
+    0.4f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   // right
+  };
+
   std::cout << "Running program...\n";
   GLFWwindow *window;
 
   initWindow(&window);
 
-  unsigned int VAO;
-  initVAO(&VAO);
+  unsigned int rectangleVAO, triangleVAO;
+  unsigned int rectangleVBO, triangleVBO;
+  unsigned int rectangleEBO;
+  initVAO(&rectangleVAO);
+  initVBO(&rectangleVBO, vertices);
+  initEBO(&rectangleEBO, indices);
 
-  unsigned int VBO;
-  initVBO(&VBO, vertices);
-
-  unsigned int EBO;
-  initEBO(&EBO, indices);
+  initVAO(&triangleVAO);
+  initVBO(&triangleVBO, triangleVertices);
 
   Shader shader = Shader("shaders/shader.vert", "shaders/shader.frag");
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -46,7 +55,7 @@ int main()
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
-    render(window, shader, VAO, EBO, indices);
+    render(window, shader, rectangleVAO, triangleVAO, rectangleEBO, indices);
     glfwPollEvents();
   }
 
@@ -129,17 +138,26 @@ void initEBO(unsigned int *EBO, std::vector<unsigned int> indices)
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 }
 
-void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EBO, std::vector<unsigned int> indices)
+void render(GLFWwindow *window, Shader shader, unsigned int rectangleVAO, unsigned int triangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices)
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   shader.use();
 
-  glBindVertexArray(VAO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glDrawElements(GL_TRIANGLES, indices.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
-  // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices)/sizeof(vertices[0]));
+  drawRectangle(rectangleVAO, rectangleEBO, indices);
+  drawTriangle(triangleVAO);
 
   glfwSwapBuffers(window);
+}
+
+void drawTriangle(unsigned int triangleVAO) {
+  glBindVertexArray(triangleVAO);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void drawRectangle(unsigned int rectangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices) {
+  glBindVertexArray(rectangleVAO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectangleEBO);
+  glDrawElements(GL_TRIANGLES, indices.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
 }

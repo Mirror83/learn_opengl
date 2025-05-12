@@ -1,6 +1,7 @@
 #include "shader.hpp"
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 #include <vector>
+#include <math.h>
 
 #define INFO_LOG_BUFFER_SIZE 512
 
@@ -144,7 +145,8 @@ void render(GLFWwindow *window, Shader shader, unsigned int rectangleVAO, unsign
   glClear(GL_COLOR_BUFFER_BIT);
 
   shader.use();
-
+  float time = glfwGetTime();
+  shader.setFloat("xOffset", sin(time) * 0.2f);
   drawRectangle(rectangleVAO, rectangleEBO, indices);
   drawTriangle(triangleVAO);
 

@@ -1,6 +1,6 @@
 #include "shader.hpp"
 #include <GLFW/glfw3.h>
-#include "math.h"
+#include <vector>
 
 #define INFO_LOG_BUFFER_SIZE 512
 
@@ -8,27 +8,24 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void initWindow(GLFWwindow **window);
 void initVAO(unsigned int *VAO);
-void initVBO(unsigned int *VBO);
-void initEBO(unsigned int *VBO);
-void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EBO);
+void initVBO(unsigned int *VBO, std::vector<float> vertices);
+void initEBO(unsigned int *EBO, std::vector<unsigned int> indices);
+void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EBO, std::vector<unsigned int> indices);
 
-// Unique vertices for a rectangle
-float vertices[] = {
+int main()
+{
+  std::vector vertices = {
     -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // top left
     -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
     0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   // top right
     0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom right
-};
+  };
 
-// Order for drawing triangles that correspond to the
-// desired rectangle given the vertices above
-unsigned int indices[] = {
+  std::vector<unsigned int> indices = {
     0, 1, 2, // First triangle
     2, 3, 1  // Second triangle
-};
+  };
 
-int main()
-{
   std::cout << "Running program...\n";
   GLFWwindow *window;
 
@@ -38,10 +35,10 @@ int main()
   initVAO(&VAO);
 
   unsigned int VBO;
-  initVBO(&VBO);
+  initVBO(&VBO, vertices);
 
   unsigned int EBO;
-  initEBO(&EBO);
+  initEBO(&EBO, indices);
 
   Shader shader = Shader("shaders/shader.vert", "shaders/shader.frag");
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -49,7 +46,7 @@ int main()
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
-    render(window, shader, VAO, EBO);
+    render(window, shader, VAO, EBO, indices);
     glfwPollEvents();
   }
 
@@ -100,11 +97,11 @@ void initWindow(GLFWwindow **window)
   glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
 }
 
-void initVBO(unsigned int *VBO)
+void initVBO(unsigned int *VBO, std::vector<float> vertices)
 {
   glGenBuffers(1, VBO);
   glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
   int stride = 6 * sizeof(float);
   int elementsPerItem = 3;
@@ -125,14 +122,14 @@ void initVAO(unsigned int *VAO)
   glBindVertexArray(*VAO);
 }
 
-void initEBO(unsigned int *EBO)
+void initEBO(unsigned int *EBO, std::vector<unsigned int> indices)
 {
   glGenBuffers(1, EBO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 }
 
-void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EBO)
+void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EBO, std::vector<unsigned int> indices)
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -141,7 +138,7 @@ void render(GLFWwindow *window, Shader shader, unsigned int VAO, unsigned int EB
 
   glBindVertexArray(VAO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, indices.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
   // glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices)/sizeof(vertices[0]));
 
   glfwSwapBuffers(window);

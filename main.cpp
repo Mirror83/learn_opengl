@@ -1,34 +1,29 @@
 #include "shader.hpp"
+#include "opengl_object.hpp"
 #include "GLFW/glfw3.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <vector>
-#include <math.h>
 
 #define INFO_LOG_BUFFER_SIZE 512
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void initWindow(GLFWwindow **window);
-void initVAO(unsigned int *VAO);
-void initVBO(unsigned int *VBO, std::vector<float> vertices);
-void initEBO(unsigned int *EBO, std::vector<unsigned int> indices);
 void initTexure(unsigned int *textureId, const char *imagePath);
-void render(GLFWwindow *window, Shader shader, unsigned int rectangleVAO, unsigned int triangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices, unsigned int texture);
-void drawTriangle(unsigned int triangleVAO);
-void drawRectangle(unsigned int rectangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices);
+void render(GLFWwindow *window, Shader shader, std::vector<OpenGLObject> objects, unsigned int texture);
 
 int main()
 {
-  std::vector vertices = {
+  std::vector rectVertices = {
     // positions       // colours         // texture coords
-    0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top right
-    0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+    0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top right
+    0.0f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,// bottom left
    -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top left
   };
 
-  std::vector<unsigned int> indices = {
+  std::vector<uint> indices = {
     0, 1, 2, // First triangle
     2, 3, 0,  // Second triangle
   };
@@ -45,33 +40,48 @@ int main()
 
   initWindow(&window);
 
-  unsigned int rectangleVAO, triangleVAO;
-  unsigned int rectangleVBO, triangleVBO;
-  unsigned int rectangleEBO;
-  unsigned int texture;
-
-  initVAO(&rectangleVAO);
-  initVBO(&rectangleVBO, vertices);
-  initEBO(&rectangleEBO, indices);
-
-  initVAO(&triangleVAO);
-  initVBO(&triangleVBO, triangleVertices);
-
-  initTexure(&texture, "textures/container.jpg");
-
+  std::vector<VBOConfig> vboConfig = {
+    {location: 0, elementsPerItem: 3}, // Position
+    {location: 1, elementsPerItem: 3}, // Colour
+    {location: 2, elementsPerItem: 2}, // 2D Texture Coords
+  };
+  OpenGLObject triangle = OpenGLObject(triangleVertices, vboConfig);
+  OpenGLObject rectangle = OpenGLObject(rectVertices, indices, vboConfig);
+  std::vector<OpenGLObject> objects = {
+    triangle,
+    rectangle
+  };
+  
   Shader shader = Shader("shaders/shader.vert", "shaders/shader.frag");
+  
+  unsigned int texture;
+  initTexure(&texture, "textures/container.jpg");
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
-    render(window, shader, rectangleVAO, triangleVAO, rectangleEBO, indices, texture);
+    render(window, shader, objects, texture);
     glfwPollEvents();
   }
 
   glfwTerminate();
   std::cout << "Program terminated." << std::endl;
   return 0;
+}
+
+void render(GLFWwindow *window, Shader shader, std::vector<OpenGLObject> objects, unsigned int texture)
+{
+  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  shader.use();
+  glBindTexture(GL_TEXTURE_2D, texture);
+  for (int i = 0; i < objects.size(); i++) {
+    OpenGLObject object = objects[i];
+    object.draw();
+  }
+  glfwSwapBuffers(window);
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -116,45 +126,6 @@ void initWindow(GLFWwindow **window)
   glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
 }
 
-void initVBO(unsigned int *VBO, std::vector<float> vertices)
-{
-  glGenBuffers(1, VBO);
-  glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-  int stride = 8 * sizeof(float);
-  int elementsPerItem = 3;
-
-  int positionLocation = 0;
-  int posOffset = elementsPerItem * positionLocation * sizeof(float);
-  glVertexAttribPointer(positionLocation, elementsPerItem, GL_FLOAT, GL_FALSE, stride,
-                        (void *)0);
-  glEnableVertexAttribArray(positionLocation);
-
-  int colourLocation = 1;
-  int colourOffset = elementsPerItem * colourLocation * sizeof(float);
-  glVertexAttribPointer(colourLocation, elementsPerItem, GL_FLOAT, GL_FALSE, stride, (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(colourLocation);
-
-  int texCoordsLocation = 2;
-  int texCoordsOffset = elementsPerItem * texCoordsLocation * sizeof(float);
-  glVertexAttribPointer(texCoordsLocation, 2, GL_FLOAT, GL_FALSE, stride, (void *)(6 * sizeof(float)));
-  glEnableVertexAttribArray(texCoordsLocation);
-}
-
-void initVAO(unsigned int *VAO)
-{
-  glGenVertexArrays(1, VAO);
-  glBindVertexArray(*VAO);
-}
-
-void initEBO(unsigned int *EBO, std::vector<unsigned int> indices)
-{
-  glGenBuffers(1, EBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-}
-
 void initTexure(unsigned int *textureId, const char *imagePath) {
   int width, height, channels;
 
@@ -174,28 +145,4 @@ void initTexure(unsigned int *textureId, const char *imagePath) {
     stbi_image_free(data);
     exit(1);
   }
-}
-
-void render(GLFWwindow *window, Shader shader, unsigned int rectangleVAO, unsigned int triangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices, unsigned int texture)
-{
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  shader.use();
-  glBindTexture(GL_TEXTURE_2D, texture);
-  drawRectangle(rectangleVAO, rectangleEBO, indices);
-  // drawTriangle(triangleVAO);
-
-  glfwSwapBuffers(window);
-}
-
-void drawTriangle(unsigned int triangleVAO) {
-  glBindVertexArray(triangleVAO);
-  glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void drawRectangle(unsigned int rectangleVAO, unsigned int rectangleEBO, std::vector<unsigned int> indices) {
-  glBindVertexArray(rectangleVAO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectangleEBO);
-  glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }

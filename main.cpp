@@ -14,12 +14,12 @@ struct TextureData {
   const char *uniformName; 
 };
 
-void initTexure(uint *textureId, const char *imagePath, GLenum imageColourFormat);
-void render(GLFWwindow *window, Shader shader, std::vector<OpenGLObject> objects, std::vector<TextureData> textures);
+void initTexture(uint *textureId, const char *imagePath, GLenum imageColourFormat);
+void render(GLFWwindow *window, const std::vector<OpenGLObject>& objects, const std::vector<TextureData>& textures);
 
 int main()
 {
-  std::vector rectVertices = {
+  const std::vector rectVertices = {
     // positions       // colours         // texture coords
     0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top right
     0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
@@ -27,12 +27,12 @@ int main()
    -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top left
   };
 
-  std::vector<uint> indices = {
+  const std::vector<uint> indices = {
     0, 1, 2, // First triangle
     2, 3, 0,  // Second triangle
   };
 
-  std::vector triangleVertices = {
+  const std::vector triangleVertices = {
     // positions       // colours        // texture coords
     0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // left
     0.2f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,// top
@@ -45,24 +45,24 @@ int main()
   initWindow(&window);
 
   std::vector<VBOConfig> vboConfig = {
-    {location: 0, elementsPerItem: 3}, // Position
-    {location: 1, elementsPerItem: 3}, // Colour
-    {location: 2, elementsPerItem: 2}, // 2D Texture Coords
+    {0, 3}, // Position
+    {1, 3}, // Colour
+    {2, 2}, // 2D Texture Coords
   };
   // OpenGLObject triangle = OpenGLObject(triangleVertices, vboConfig);
-  OpenGLObject rectangle = OpenGLObject(rectVertices, indices, vboConfig);
-  std::vector<OpenGLObject> objects = {
+  const OpenGLObject rectangle = OpenGLObject(rectVertices, indices, vboConfig);
+  const std::vector objects = {
     rectangle
   };
-  
-  Shader shader = Shader("shaders/shader.vert", "shaders/shader.frag");
+
+  auto shader = Shader("shaders/shader.vert", "shaders/shader.frag");
   
   uint containerTex, faceTex;
-  initTexure(&containerTex, "textures/container.jpg", GL_RGB);
-  initTexure(&faceTex, "textures/awesomeface.png", GL_RGBA);
+  initTexture(&containerTex, "textures/container.jpg", GL_RGB);
+  initTexture(&faceTex, "textures/awesomeface.png", GL_RGBA);
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  std::vector<TextureData> textures = {
+  const std::vector<TextureData> textures = {
     {containerTex, GL_TEXTURE0, "texture1"},
     {faceTex, GL_TEXTURE1, "texture2"},
   };
@@ -79,7 +79,7 @@ int main()
   while (!glfwWindowShouldClose(window))
   {
     processInput(window);
-    render(window, shader, objects, textures);
+    render(window, objects, textures);
     glfwPollEvents();
   }
 
@@ -88,26 +88,24 @@ int main()
   return 0;
 }
 
-void render(GLFWwindow *window, Shader shader, std::vector<OpenGLObject> objects, std::vector<TextureData> textures)
+void render(GLFWwindow *window, const std::vector<OpenGLObject>& objects, const std::vector<TextureData>& textures)
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  for (int i = 0; i < textures.size(); i++)
+  for (const TextureData t : textures)
   {
-    TextureData t = textures[i];
     glActiveTexture(t.textureUnit);
     glBindTexture(GL_TEXTURE_2D, t.textureId);
   }
   
-  for (int i = 0; i < objects.size(); i++) {
-    OpenGLObject object = objects[i];
+  for (const OpenGLObject& object : objects) {
     object.draw();
   }
   glfwSwapBuffers(window);
 }
 
-void initTexure(uint *textureId, const char *imagePath, GLenum imageColourFormat) {
+void initTexture(uint *textureId, const char *imagePath, GLenum imageColourFormat) {
   int width, height, channels;
 
   // OpenGL expects the (0,0) coordinate of an image to be on the bottom-left,

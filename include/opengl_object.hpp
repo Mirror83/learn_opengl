@@ -1,5 +1,5 @@
+#pragma once
 #include "glad/glad.h"
-#include "GLFW/glfw3.h"
 #include <vector>
 
 typedef unsigned int uint;
@@ -13,7 +13,6 @@ typedef std::vector<VBOConfig> VBOConfigList;
 
 class OpenGLObject
 {
-private:
   std::vector<float> _vertices;
   std::vector<uint> _indices;
   // Vertex Array, Vertex and Element Buffer object IDs
@@ -25,7 +24,7 @@ private:
     glBindVertexArray(VAO);
   }
 
-  void _initVBO(VBOConfigList config)
+  void _initVBO(const VBOConfigList& config)
   {
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -41,16 +40,16 @@ private:
 
     for (int i = 0; i < config.size(); i++)
     {
-      VBOConfig current = config[i];
+      const auto [location, elementsPerItem] = config[i];
       void *offset;
-      if (current.location == 0){
-        offset = (void *)(0);
+      if (location == 0){
+        offset = reinterpret_cast<void*>(location);
       } else {
-        uint elementsInPrevItem = config[i-1].elementsPerItem;
-        offset = (void *)(elementsInPrevItem * current.location * sizeof(float));
+        const uint elementsInPrevItem = config[i-1].elementsPerItem;
+        offset = reinterpret_cast<void*>(elementsInPrevItem * location * sizeof(float));
       }
-      glVertexAttribPointer(current.location, current.elementsPerItem, GL_FLOAT, GL_FALSE, stride, offset);
-      glEnableVertexAttribArray(current.location);
+      glVertexAttribPointer(location, elementsPerItem, GL_FLOAT, GL_FALSE, stride, offset);
+      glEnableVertexAttribArray(location);
     }
   }
 
@@ -61,14 +60,14 @@ private:
   }
 
 public:
-  OpenGLObject(std::vector<float> vertices, VBOConfigList vboConfig)
+  OpenGLObject(const std::vector<float>& vertices, const VBOConfigList& vboConfig)
   {
     _vertices = vertices;
     _initVAO();
     _initVBO(vboConfig);
   }
 
-  OpenGLObject(std::vector<float> vertices, std::vector<uint> indices, VBOConfigList vboConfig)
+  OpenGLObject(const std::vector<float>& vertices, const std::vector<uint>& indices, const VBOConfigList& vboConfig)
   {
     _vertices = vertices;
     _indices = indices;
@@ -77,12 +76,12 @@ public:
     _initEBO();
   }
 
-  void draw()
+  void draw() const
   {
     if (_indices.size() > 0) {
       glBindVertexArray(VAO);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-      glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
+      glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, nullptr);
     } else {
       glBindVertexArray(VAO);
       glDrawArrays(GL_TRIANGLES, 0, 3);

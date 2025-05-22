@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "glm/fwd.hpp"
+
 class Shader
 {
 public:
@@ -112,5 +114,11 @@ public:
   void setFloat(const std::string &name, float value) const
   {
     glUniform1f(glGetUniformLocation(programId, name.c_str()), value);
+  }
+
+  void set4x4Matrix(const std::string &name, const GLfloat* matrix) const
+  {
+    const auto loc = glGetUniformLocation(programId, name.c_str());
+    glUniformMatrix4fv(loc, 1, GL_FALSE, matrix);
   }
 };

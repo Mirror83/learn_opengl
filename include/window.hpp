@@ -2,6 +2,10 @@
 #include "GLFW/glfw3.h"
 #include <iostream>
 
+
+constexpr int WINDOW_WIDTH = 800;
+constexpr int WINDOW_HEIGHT = 600;
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
   glViewport(0, 0, width, height);
@@ -20,12 +24,10 @@ void initWindow(GLFWwindow **window)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); (Uncomment for Mac OS X)
-  int windowWidth = 800;
-  int windowHeight = 600;
   const char *windowTitle = "Learn OpenGL";
 
-  *window = glfwCreateWindow(windowWidth, windowHeight, windowTitle, NULL, NULL);
-  if (*window == NULL)
+  *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, windowTitle, nullptr, nullptr);
+  if (*window == nullptr)
   {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -34,12 +36,12 @@ void initWindow(GLFWwindow **window)
 
   glfwMakeContextCurrent(*window);
 
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
   {
     std::cout << "Failed to initialize GLAD" << std::endl;
     exit(-1);
   }
 
-  glViewport(0, 0, windowWidth, windowHeight);
+  glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
   glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
 }

@@ -16,7 +16,7 @@ class OpenGLObject
   std::vector<float> _vertices;
   std::vector<uint> _indices;
   // Vertex Array, Vertex and Element Buffer object IDs
-  unsigned int VAO, VBO, EBO;
+  unsigned int VAO, VBO, EBO, stride;
 
   void _initVAO()
   {
@@ -30,7 +30,7 @@ class OpenGLObject
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(float), _vertices.data(), GL_STATIC_DRAW);
 
-    int stride = 0;
+    stride = 0;
     for (int i = 0; i < config.size(); i++)
     {
       stride += config[i].elementsPerItem;
@@ -78,13 +78,14 @@ public:
 
   void draw() const
   {
+    glBindVertexArray(VAO);
     if (_indices.size() > 0) {
-      glBindVertexArray(VAO);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
       glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, nullptr);
     } else {
-      glBindVertexArray(VAO);
-      glDrawArrays(GL_TRIANGLES, 0, 3);
+      // Stores the points per triangle + texture coordinates and other vertex shader input params
+      const int elementsPerVertex = _vertices.size() / (stride / sizeof(float));
+      glDrawArrays(GL_TRIANGLES, 0, elementsPerVertex);
     }
   }
 };

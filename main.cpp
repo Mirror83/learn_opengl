@@ -21,16 +21,72 @@ struct TextureData
 };
 
 void initTexture(uint* textureId, const char* imagePath, GLenum imageColourFormat);
-void render(GLFWwindow* window, const std::vector<OpenGLObject>& objects, const std::vector<TextureData>& textures);
 
 int main()
 {
     const std::vector rectVertices = {
-        // positions       // colours         // texture coords
-        0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top right
-        0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // top left
+        // positions       // texture coords
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top left
+    };
+
+    const std::vector cubeVertices = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f, 0.0f, 0.0f),
+        glm::vec3( 2.0f, 5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f, 2.0f, -2.5f),
+        glm::vec3( 1.5f, 0.2f, -1.5f),
+        glm::vec3(-1.3f, 1.0f, -1.5f)
     };
 
     const std::vector<uint> indices = {
@@ -39,10 +95,10 @@ int main()
     };
 
     const std::vector triangleVertices = {
-        // positions       // colours        // texture coords
-        0.0f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // left
-        0.2f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f, // top
-        0.4f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // right
+        // positions       // texture coords
+        0.0f, -0.5f, 0.0f, 0.0f, 0.0f, // left
+        0.2f, 0.5f, 0.0f, 0.5f, 1.0f, // top
+        0.4f, -0.5f, 0.0f, 1.0f, 0.0f, // right
     };
 
     std::cout << "Running program...\n";
@@ -50,18 +106,18 @@ int main()
 
     initWindow(&window);
 
-    std::vector<VBOConfig> vboConfig = {
+    const std::vector<VBOConfig> vboConfig = {
         {0, 3}, // Position
-        {1, 3}, // Colour
-        {2, 2}, // 2D Texture Coords
-    };
-    // OpenGLObject triangle = OpenGLObject(triangleVertices, vboConfig);
-    const OpenGLObject rectangle = OpenGLObject(rectVertices, indices, vboConfig);
-    const std::vector objects = {
-        rectangle
+        {1, 2}, // 2D Texture Coords
     };
 
-    auto shader = Shader("shaders/shader.vert", "shaders/shader.frag");
+    const std::vector objects = {
+        // OpenGLObject(triangleVertices, vboConfig)
+        // OpenGLObject(rectVertices, indices, vboConfig),
+        OpenGLObject(cubeVertices, vboConfig),
+    };
+
+    const auto shader = Shader("shaders/shader.vert", "shaders/shader.frag");
 
     uint containerTex, faceTex;
     initTexture(&containerTex, "textures/container.jpg", GL_RGB);
@@ -82,21 +138,19 @@ int main()
         shader.setInt(textures[i].uniformName, i);
     }
 
+    glEnable(GL_DEPTH_TEST);
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         for (const TextureData t : textures)
         {
             glActiveTexture(t.textureUnit);
             glBindTexture(GL_TEXTURE_2D, t.textureId);
         }
-
-        auto model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
         auto view = glm::mat4(1.0f);
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
@@ -106,15 +160,21 @@ int main()
                              0.1f,
                              100.0f);
 
+        shader.setMat4("view", glm::value_ptr(view));
+        shader.setMat4("projection", glm::value_ptr(projection));
 
-        shader.set4x4Matrix("model", glm::value_ptr(model));
-        shader.set4x4Matrix("view", glm::value_ptr(view));
-        shader.set4x4Matrix("projection", glm::value_ptr(projection));
-
-
-        for (const OpenGLObject& object : objects)
+        for (int i = 0; i < 10; i++)
         {
-            object.draw();
+            auto model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            const float angle = 20.0f * static_cast<float>(i + 1);
+            model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(angle),
+                                glm::vec3(0.5f, 1.0f, 0.0f));
+            shader.setMat4("model", glm::value_ptr(model));
+            for (const OpenGLObject& object : objects)
+            {
+                object.draw();
+            }
         }
 
         glfwSwapBuffers(window);
@@ -126,11 +186,7 @@ int main()
     return 0;
 }
 
-void render(GLFWwindow* window, const std::vector<OpenGLObject>& objects, const std::vector<TextureData>& textures)
-{
-}
-
-void initTexture(uint* textureId, const char* imagePath, GLenum imageColourFormat)
+void initTexture(uint* textureId, const char* imagePath, const GLenum imageColourFormat)
 {
     int width, height, channels;
 

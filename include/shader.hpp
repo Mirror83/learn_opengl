@@ -55,24 +55,24 @@ public:
     char infoLog[512];
 
     vertexId = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexId, 1, &vShaderCode, NULL);
+    glShaderSource(vertexId, 1, &vShaderCode, nullptr);
     glCompileShader(vertexId);
     glGetShaderiv(vertexId, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-      glGetShaderInfoLog(vertexId, 512, NULL, infoLog);
+      glGetShaderInfoLog(vertexId, 512, nullptr, infoLog);
       std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
                 << infoLog << std::endl;
       exit(-1);
     }
 
     fragmentId = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentId, 1, &fShaderCode, NULL);
+    glShaderSource(fragmentId, 1, &fShaderCode, nullptr);
     glCompileShader(fragmentId);
     glGetShaderiv(fragmentId, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-      glGetShaderInfoLog(fragmentId, 512, NULL, infoLog);
+      glGetShaderInfoLog(fragmentId, 512, nullptr, infoLog);
       std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
                 << infoLog << std::endl;
       exit(-1);
@@ -86,7 +86,7 @@ public:
     glGetProgramiv(programId, GL_LINK_STATUS, &success);
     if (!success)
     {
-      glGetProgramInfoLog(programId, 512, NULL, infoLog);
+      glGetProgramInfoLog(programId, 512, nullptr, infoLog);
       std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
                 << infoLog << std::endl;
       exit(-1);
@@ -96,27 +96,27 @@ public:
     glDeleteShader(fragmentId);
   }
 
-  void use()
+  void use() const
   {
     glUseProgram(programId);
   }
 
-  void setBool(const std::string &name, bool value) const
+  void setBool(const std::string &name, const bool value) const
   {
-    glUniform1i(glGetUniformLocation(programId, name.c_str()), (int)value);
+    glUniform1i(glGetUniformLocation(programId, name.c_str()), static_cast<int>(value));
   }
 
-  void setInt(const std::string &name, int value) const
+  void setInt(const std::string &name, const int value) const
   {
     glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
   }
 
-  void setFloat(const std::string &name, float value) const
+  void setFloat(const std::string &name, const float value) const
   {
     glUniform1f(glGetUniformLocation(programId, name.c_str()), value);
   }
 
-  void set4x4Matrix(const std::string &name, const GLfloat* matrix) const
+  void setMat4(const std::string &name, const float *matrix) const
   {
     const auto loc = glGetUniformLocation(programId, name.c_str());
     glUniformMatrix4fv(loc, 1, GL_FALSE, matrix);

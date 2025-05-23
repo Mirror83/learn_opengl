@@ -2,14 +2,14 @@
 
 #include "shader.hpp"
 #include "opengl_object.hpp"
-#include "window.hpp"
+#include "window.hpp"  // Also includes glad and GLFW
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "ext/glm/glm.hpp"
+#include "ext/glm/gtc/matrix_transform.hpp"
+#include "ext/glm/gtc/type_ptr.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "ext/stb_image.h"
 
 #define INFO_LOG_BUFFER_SIZE 512
 
@@ -76,7 +76,7 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    glm::vec3 cubePositions[] = {
+    constexpr glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
         glm::vec3( 2.0f, 5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),

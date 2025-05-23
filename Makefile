@@ -1,10 +1,10 @@
 build_folder := build
 
-all: clean $(build_folder)/main) run
+all: clean $(build_folder)/main run
 
-$(build_folder)/main: main.cpp glad.c include/*.hpp
+$(build_folder)/main: main.cpp ext/glad.c include/*.hpp
 	mkdir -p $(build_folder)
-	g++ -g glad.c main.cpp -o $(build_folder)/main -Iinclude/ -lglfw -lGL -lpthread -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon
+	g++ -g ext/glad.c main.cpp -o $(build_folder)/main -Iinclude/ -lglfw -lGL -lpthread -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon
 	
 run: $(build_folder)/main
 	./$(build_folder)/main

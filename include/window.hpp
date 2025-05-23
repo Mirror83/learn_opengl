@@ -1,23 +1,26 @@
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
+#pragma once
+
 #include <iostream>
+
+#include "ext/glad/glad.h"
+#include "GLFW/glfw3.h"
 
 
 constexpr int WINDOW_WIDTH = 800;
 constexpr int WINDOW_HEIGHT = 600;
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+inline void framebuffer_size_callback(GLFWwindow *, const int width, const int height)
 {
   glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow *window)
+inline void processInput(GLFWwindow *window)
 {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 }
 
-void initWindow(GLFWwindow **window)
+inline void initWindow(GLFWwindow **window)
 {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

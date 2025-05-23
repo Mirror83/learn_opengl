@@ -1,6 +1,7 @@
 #pragma once
-#include "glad/glad.h"
 #include <vector>
+
+#include "ext/glad/glad.h"
 
 typedef unsigned int uint;
 

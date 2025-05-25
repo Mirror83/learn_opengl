@@ -3,6 +3,7 @@
 #include "shader.hpp"
 #include "opengl_object.hpp"
 #include "window.hpp"  // Also includes glad and GLFW
+#include "camera.hpp"
 
 #include "ext/glm/glm.hpp"
 #include "ext/glm/gtc/matrix_transform.hpp"
@@ -21,6 +22,16 @@ struct TextureData
 };
 
 void initTexture(uint* textureId, const char* imagePath, GLenum imageColourFormat);
+inline void processKeyboardInput(GLFWwindow *window);
+void mouseCallback(GLFWwindow* window, double xPos, double yPos);
+void scrollCallback(GLFWwindow *, double, double yOffset);
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = WINDOW_WIDTH / 2.0f;
+float lastY = WINDOW_HEIGHT / 2.0f;
+bool firstMouse = true;
+float deltaTime = 0.0f;   // Time between the current frame and last frame
+float lastFrame = 0.0f;
 
 int main()
 {
@@ -101,15 +112,14 @@ int main()
         0.4f, -0.5f, 0.0f, 1.0f, 0.0f, // right
     };
 
-    std::cout << "Running program...\n";
-    GLFWwindow* window;
-
-    initWindow(&window);
-
     const std::vector<VBOConfig> vboConfig = {
         {0, 3}, // Position
         {1, 2}, // 2D Texture Coords
     };
+
+    std::cout << "Running program...\n";
+    GLFWwindow* window;
+    initWindow(&window);
 
     const std::vector objects = {
         // OpenGLObject(triangleVertices, vboConfig)
@@ -121,7 +131,7 @@ int main()
 
     uint containerTex, faceTex;
     initTexture(&containerTex, "textures/container.jpg", GL_RGB);
-    initTexture(&faceTex, "textures/awesomeface.png", GL_RGBA);
+    initTexture(&faceTex, "textures/awesome_face.png", GL_RGBA);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     const std::vector<TextureData> textures = {
@@ -138,21 +148,28 @@ int main()
         shader.setInt(textures[i].uniformName, i);
     }
 
+    for (const TextureData t : textures)
+    {
+        glActiveTexture(t.textureUnit);
+        glBindTexture(GL_TEXTURE_2D, t.textureId);
+    }
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouseCallback);
     glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        const auto currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processKeyboardInput(window);
+
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        for (const TextureData t : textures)
-        {
-            glActiveTexture(t.textureUnit);
-            glBindTexture(GL_TEXTURE_2D, t.textureId);
-        }
-        auto view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        glm::mat4 view = camera.getViewMatrix();
 
         auto projection =
             glm::perspective(glm::radians(45.0f),
@@ -215,3 +232,43 @@ void initTexture(uint* textureId, const char* imagePath, const GLenum imageColou
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 }
+
+void mouseCallback(GLFWwindow *, const double xPos, const double yPos)
+{
+    const auto x = static_cast<float>(xPos);
+    const auto y = static_cast<float>(yPos);
+    if (firstMouse)
+    {
+        lastX = x;
+        lastY = y;
+        firstMouse = false;
+    }
+
+    const float xOffset = x - lastX;
+    const float yOffset = lastY - y; // reversed since y-coordinates go from bottom to top
+    lastX = x;
+    lastY = y;
+
+    camera.processMouseMovement(xOffset, yOffset);
+}
+
+void scrollCallback(GLFWwindow *, const double, const double yOffset)
+{
+    camera.processMouseScroll(static_cast<float>(yOffset));
+}
+
+inline void processKeyboardInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.processKeyboard(CameraMovement::Forward, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.processKeyboard(CameraMovement::Backward, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.processKeyboard(CameraMovement::Left, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.processKeyboard(CameraMovement::Right, deltaTime);
+
+}
+

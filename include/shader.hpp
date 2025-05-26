@@ -39,7 +39,7 @@ public:
       vertexCode = vShaderStream.str();
       fragmentCode = fShaderStream.str();
     }
-    catch (std::ifstream::failure e)
+    catch (std::ifstream::failure &e)
     {
       std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
       exit(-1);
@@ -112,6 +112,12 @@ public:
   void setFloat(const std::string &name, const float value) const
   {
     glUniform1f(glGetUniformLocation(programId, name.c_str()), value);
+  }
+
+  void setVec3(const std::string &name, const float *vec3) const
+  {
+    const auto loc = glGetUniformLocation(programId, name.c_str());
+    glUniform3fv(loc, 1, vec3);
   }
 
   void setMat4(const std::string &name, const float *matrix) const

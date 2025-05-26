@@ -3,6 +3,13 @@ project(learn_opengl)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(getting_started src/getting-started/main.cpp src/ext/glad.c)
-target_include_directories(getting_started PUBLIC include)
-target_link_libraries(getting_started glfw pthread wayland-client wayland-cursor wayland-egl xkbcommon)
+set(OPEN_GL_LIBRARIES glfw pthread)
+set(WAYLAND_LIBRARIES wayland-client wayland-cursor wayland-egl xkbcommon)
+set(GLAD "src/ext/glad.c")
+
+include_directories(include)
+link_libraries(${OPEN_GL_LIBRARIES} ${WAYLAND_LIBRARIES})
+
+add_executable(getting_started src/getting-started/main.cpp ${GLAD})
+add_executable(lighting src/lighting/lighting.cpp ${GLAD}
+        src/lighting/lighting.hpp)
